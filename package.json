@@ -1,0 +1,16 @@
+{
+ "name": "usly-android",
+ "private": true,
+ "version": "1.0.0",
+ "scripts": {
+  "fb": "cd fb-bundle && npm i && npm run build && node inline.js ../www/index.html"
+ },
+ "dependencies": {
+  "@capacitor/android": "^7.0.0",
+  "@capacitor/core": "^7.0.0",
+  "@capacitor/local-notifications": "^7.0.0"
+ },
+ "devDependencies": {
+  "@capacitor/cli": "^7.0.0"
+ }
+}

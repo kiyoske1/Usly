@@ -1,0 +1,29 @@
+rules_version = '2';
+// Публиковать ТОЛЬКО после пересборки Firebase-бандла (см. README): приложение должно входить анонимно.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signed() { return request.auth != null; }
+    function member(d) { return signed() && request.auth.uid in d.members; }
+    function sane(d) {
+      return d.n1 is string && d.n1.size() <= 40 && d.n2 is string && d.n2.size() <= 40
+        && d.date is string && d.ev.size() <= 500 && d.nt.size() <= 1000 && d.keys().size() <= 80;
+    }
+    function gain(k) { return request.resource.data.get('h', {}).get(k, 0) - resource.data.get('h', {}).get(k, 0); }
+    function isCreator() { return request.auth.uid == resource.data.members[0]; }
+    match /pairs/{id} {
+      allow get: if id.matches('[0-9]{6}') && signed()
+        && (resource == null || member(resource.data) || resource.data.members.size() < 2);
+      allow create: if id.matches('[0-9]{6}') && signed()
+        && request.resource.data.members == [request.auth.uid] && sane(request.resource.data);
+      // обычное обновление участником: состав не меняется, чужие сердечки не трогаем, прирост за запись <= 120
+      allow update: if member(resource.data) && request.resource.data.members == resource.data.members
+        && sane(request.resource.data) && gain('1') <= 120 && gain('2') <= 120
+        && (isCreator() ? gain('2') == 0 : gain('1') == 0);
+      // подключение второго участника в свободный слот
+      allow update: if signed() && resource.data.members.size() == 1 && request.resource.data.members.size() == 2
+        && request.resource.data.members[0] == resource.data.members[0]
+        && request.resource.data.members[1] == request.auth.uid && sane(request.resource.data);
+      allow list, delete: if false;
+    }
+  }
+}

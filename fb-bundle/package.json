@@ -1,0 +1,1 @@
+{"name":"fb-bundle","private":true,"scripts":{"build":"esbuild entry.js --bundle --minify --format=iife --outfile=fb.js"},"dependencies":{"firebase":"13.2.0"},"devDependencies":{"esbuild":"^0.24.0"}}
